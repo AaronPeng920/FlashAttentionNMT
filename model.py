@@ -11,6 +11,7 @@ import torch.nn.functional as F
 
 DEVICE = config.device
 
+
 # from flash_attn.flash_attn_interface import flash_attn_unpadded_func
 
 # from flash_attn import flash_attn_qkvpacked_func, flash_attn_func
@@ -205,8 +206,8 @@ class MultiHeadedAttention(nn.Module):
                              for l, x in zip(self.linears, (query, key, value))]
         
         # 调用上述定义的attention函数计算得到h个注意力矩阵跟value的乘积，以及注意力矩阵
-        # x, self.attn = attention(query, key, value, mask=mask, dropout=self.dropout)
-        x, self.attn = flash_attention_v2(query, key, value, mask=mask, dropout=self.dropoutrate)
+        x, self.attn = attention(query, key, value, mask=mask, dropout=self.dropout)
+        # x, self.attn = flash_attention_v2(query, key, value, mask=mask, dropout=self.dropoutrate)
         
         
         # 将h个多头注意力矩阵concat起来（注意要先把h变回到第三维的位置）

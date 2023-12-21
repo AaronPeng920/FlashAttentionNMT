@@ -1,126 +1,97 @@
-Language: 简体中文 | [English](https://github.com/hemingkx/ChineseNMT/blob/master/README-en.md)
+# FlashAttentionNMT: 基于FlashAttention的神经机器翻译
 
-# ChineseNMT
+该仓库是中山大学2023年秋季高级计算机体系结构的课程设计，根据论文 [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) 进行实现和改进。受计算资源的限制，本仓库并没有对原论文中的实验进行复现，而是选择了该仓库的神经机器翻译任务，两者都是基于 Transformer 的，故在验证 FlashAttention 的设计思想上是等效的。
 
-基于transformer的英译中翻译模型🤗。
+## 安装
 
-项目说明参考知乎文章：[教你用PyTorch玩转Transformer英译中翻译模型！](https://zhuanlan.zhihu.com/p/347061440)
+要求：
 
-## Data
+* 目前仅支持 A100、RTX 3090、RTX 4090、H100 显卡
+* 需要 CUDA 版本 >= 11.6
+* 确保已经根据自己的 CUDA 版本安装了 PyTorch，由于不知道宿主机的 CUDA 版本，无法提供具体的 PyTorch 版本，请在宿主机上输入 `cudnn -V` 查看自己的 CUDA 版本，并根据自己的 CUDA 版本前往 [Torch](https://pytorch.org/) 查询安装命令并安装
 
-The dataset is from [WMT 2018 Chinese-English track](http://statmt.org/wmt18/translation-task.html) (Only NEWS Area)
+### 创建 FlashAttention 虚拟环境
 
-## Data Process
+1. 创建虚拟环境
 
-### 分词
+```
+conda create -n flash_attn python=3.10
+conda activate flash_attn
+```
 
-- 工具：[sentencepiece](https://github.com/google/sentencepiece)
-- 预处理：`./data/get_corpus.py`抽取train、dev和test中双语语料，分别保存到`corpus.en`和`corpus.ch`中，每行一个句子。
-- 训练分词模型：`./tokenizer/tokenize.py`中调用了sentencepiece.SentencePieceTrainer.Train()方法，利用`corpus.en`和`corpus.ch`中的语料训练分词模型，训练完成后会在`./tokenizer`文件夹下生成`chn.model`，`chn.vocab`，`eng.model`和`eng.vocab`，其中`.model`和`.vocab`分别为模型文件和对应的词表。
+2. 安装 FlashAttention
 
-## Model
+```
+pip install flash-attn==1.0.9
+```
 
-采用Harvard开源的 [transformer-pytorch](http://nlp.seas.harvard.edu/2018/04/03/attention.html) ，中文说明可参考 [传送门](https://zhuanlan.zhihu.com/p/144825330) 。
-
-## Requirements
-
-This repo was tested on Python 3.6+ and PyTorch 1.5.1. The main requirements are:
-
-- tqdm
-- pytorch >= 1.5.1
-- sacrebleu >= 1.4.14
-- sentencepiece >= 0.1.94
-
-To get the environment settled quickly, run:
+3. 安装相关依赖
 
 ```
 pip install -r requirements.txt
 ```
 
-## Usage
+### 创建和安装改进的 FlashAttention 虚拟环境
 
-模型参数在`config.py`中设置。
-
-- 由于transformer显存要求，支持MultiGPU，需要设置`config.py`中的`device_id`列表以及`main.py`中的`os.environ['CUDA_VISIBLE_DEVICES']`。
-
-如要运行模型，可在命令行输入：
+1. 创建虚拟环境
 
 ```
-python main.py
+conda create -n imp_flash_attn python=3.10
+conda activate imp_flash_attn
 ```
 
-实验结果在`./experiment/train.log`文件中，测试集翻译结果在`./experiment/output.txt`中。
-
-> 在两块GeForce GTX 1080 Ti上运行，每个epoch用时一小时左右。
-
-## Results
-
-| Model | NoamOpt | LabelSmoothing | Best Dev Bleu | Test Bleu |
-| :---: | :-----: | :------------: | :-----------: | :-------: |
-|   1   |   No    |       No       |     24.07     |   24.03   |
-|   2   |   Yes   |       No       |   **26.08**   | **25.94** |
-|   3   |   No    |      Yes       |     23.92     |   23.84   |
-
-## Pretrained Model
-
-训练好的 Model 2 模型（当前最优模型）可以在如下链接直接下载😊：
-
-链接: https://pan.baidu.com/s/1RKC-HV_UmXHq-sy1-yZd2Q  密码: g9wl
-
-## Beam Search
-
-当前最优模型（Model 2）使用beam search测试的结果
-
-| Beam_size |   2   |   3   |   4   |     5     |
-| :-------: | :---: | :---: | :---: | :-------: |
-| Test Bleu | 26.59 | 26.80 | 26.84 | **26.86** |
-
-## One Sentence Translation
-
-将训练好的model或者上述Pretrained model以`model.pth`命名，保存在`./experiment`路径下。在`main.py`中运行`translate_example`，即可实现单句翻译。
-
-如英文输入单句为：
+2. 安装改进的 FlashAttention
 
 ```
-The near-term policy remedies are clear: raise the minimum wage to a level that will keep a fully employed worker and his or her family out of poverty, and extend the earned-income tax credit to childless workers.
+pip install flash-attn
 ```
 
-ground truth为：
+3. 安装相关依赖
 
 ```
-近期的政策对策很明确：把最低工资提升到足以一个全职工人及其家庭免于贫困的水平，扩大对无子女劳动者的工资所得税减免。
+pip install -r requirements.txt
 ```
 
-beam size = 3的翻译结果为：
+## 训练
 
+通过在不同的虚拟环境下训练模型，可以实现不同的 FlashAttention 进行训练：
+
+```shell
+# 在 FlashAttention 下训练模型
+conda activate flash_attn
+
+# 在改进的 FlashAttention 下训练模型
+conda activate imp_flash_attn
+
+# 开始对模型进行训练
+python main.py --attn_type `attention type`
 ```
-短期政策方案很清楚:把最低工资提高到充分就业的水平,并扩大向无薪工人发放所得的税收信用。
+
+其中：
+
+`attn_type`: 可以是 `dotscale`, `flash_attn`, `imp_flash_attn`，分别代表原始的点积缩放注意力、FlashAttention 以及改进的 FlashAttention。请注意，由于两个环境的依赖是冲突的，所以请确保在 `flash_attn` 虚拟环境下的 `attn_type` 参数取值是 `flash_attn`，而在 `imp_flash_attn` 虚拟环境下的取值是 `imp_flash_attn`。
+
+训练过程中，在日志 `experiment/train.log` 中会记录每个 epoch 的耗时和损失等信息。
+
+## 测试
+
+在我们的语料库中的序列平均长度不超过 200，在这种配置下难以表现出改进的 FlashAttention 在序列长度维度的并行性，所以我们使用序列长度分别为 `200, 400, 800, 1000, 2000` 的数据进行模拟，相关代码在 `test.py` 中，可以使用下面的命令来进行测试：
+
+```shell
+python test.py --attn_type `attention_type` --epochs `epoch num` --seq_len `sequence length`
 ```
 
-## Mention
+其中：
 
-The codes released in this reposity are only tested successfully with **Linux**. If you wanna try it with **Windows**, steps below may be useful to you as mentioned in [issue 2](https://github.com/hemingkx/ChineseNMT/issues/2):
+* `attn_type`: 可以是 `dotscale`, `flash_attn`, `imp_flash_attn`，分别代表原始的点积缩放注意力、FlashAttention 以及改进的 FlashAttention。请注意，由于两个环境的依赖是冲突的，所以请确保在 `flash_attn` 虚拟环境下的 `attn_type` 参数取值是 `flash_attn`，而在 `imp_flash_attn` 虚拟环境下的取值是 `imp_flash_attn`，默认 `dotscale`
+* `epochs`: 注意力计算的次数，可以设置为 1000 及以上的数值，默认 1000
+* `seq_len`: 序列长度，默认 `-1`，即事先设置的一系列序列长度 `200, 400, 800, 1000, 2000` ，即论文中的数据。可以将此数据设置为其他整数（注意不要太大，可能会导致OOM）
 
-1. **adding utf-8 encoding declaration:**
 
-   in lines 16 and 19 of get_corpus.py:
 
-   ```
-   with open(ch_path, "w", encoding="utf-8") as fch:
-   with open(en_path, "w", encoding="utf-8") as fen:
-   ```
 
-   in line 165 of train.py:
 
-   ```
-   with open(config.output_path, "w", encoding="utf-8") as fp:
-   ```
 
-2. **using conda command to install sacrebleu if Anoconda is used for building your virtual env:**
 
-   ```
-   conda install -c conda-forge sacrebleu
-   ```
 
-For any other problems you meet when doing your own project, welcome to issuing or sending emails to me 😊~
 

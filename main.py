@@ -4,13 +4,24 @@ import logging
 import numpy as np
 
 import torch
+import argparse
 from torch.utils.data import DataLoader
 
 from train import train, test, translate
 from data_loader import MTDataset
 from utils import english_tokenizer_load
-from model import make_model, LabelSmoothing
+from model import LabelSmoothing
 
+parser = argparse.ArgumentParser(description='Train NMT')
+parser.add_argument('--attn_type', type=str, help='Attention type', default='dotscale', choices=['dotscale', 'flash_attn', 'imp_flash_attn'])
+args = parser.parse_args()
+
+if args.attn_type == 'dotscale':
+    from model import make_model
+elif args.attn_type == 'flash_attn':
+    from model_v1 import make_model
+elif args.attn_type == 'imp_flash_attn':
+    from model_v2 import make_model
 
 class NoamOpt:
     """Optim wrapper that implements rate."""
@@ -63,7 +74,7 @@ def run():
     logging.info("-------- Get Dataloader! --------")
     # 初始化模型
     model = make_model(config.src_vocab_size, config.tgt_vocab_size, config.n_layers,
-                       config.d_model, config.d_ff, config.n_heads, config.dropout)
+                        config.d_model, config.d_ff, config.n_heads, config.dropout)
     model = model.cuda().to(torch.bfloat16)
     # model_par = torch.nn.DataParallel(model)  # use before
     # 训练
