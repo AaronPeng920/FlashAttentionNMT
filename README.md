@@ -7,8 +7,9 @@
 要求：
 
 * 目前仅支持 A100、RTX 3090、RTX 4090、H100 显卡
+* 已经安装了 Anaconda 3，如果没有，请前往 [Anaconda](https://www.anaconda.com/download) 进行下载安装
 * 需要 CUDA 版本 >= 11.6
-* 确保已经根据自己的 CUDA 版本安装了 PyTorch，由于不知道宿主机的 CUDA 版本，无法提供具体的 PyTorch 版本，请在宿主机上输入 `cudnn -V` 查看自己的 CUDA 版本，并根据自己的 CUDA 版本前往 [Torch](https://pytorch.org/) 查询安装命令并安装
+* 确保已经根据自己的 CUDA 版本安装了 PyTorch，由于不知道宿主机的 CUDA 版本，无法提供具体的 PyTorch 版本，请在宿主机上输入 `cudnn --version` 查看自己的 CUDA 版本，并根据自己的 CUDA 版本前往 [Torch](https://pytorch.org/) 查询安装命令并安装
 
 ### 创建 FlashAttention 虚拟环境
 
