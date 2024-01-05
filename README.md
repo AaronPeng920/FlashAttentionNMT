@@ -1,6 +1,6 @@
 # FlashAttentionNMT: 基于FlashAttention的神经机器翻译
 
-该仓库是中山大学2023年秋季高级计算机体系结构的课程设计，根据论文 [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) 进行实现和改进。受计算资源的限制，本仓库并没有对原论文中的实验进行复现，而是选择了该仓库的神经机器翻译任务，两者都是基于 Transformer 的，故在验证 FlashAttention 的设计思想上是等效的。
+该仓库是中山大学2023年秋季高级计算机体系结构的课程设计，根据论文 [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135) 进行实现和改进。受计算资源的限制，本仓库对原论文中的实验进行简化，设计了该仓库的神经机器翻译任务，两者都是基于 Transformer 的，故在验证 FlashAttention 的设计思想上是等效的。
 
 ## 安装
 
